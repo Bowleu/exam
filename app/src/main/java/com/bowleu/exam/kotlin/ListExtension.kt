@@ -1,4 +1,4 @@
-package com.bowleu.exam
+package com.bowleu.exam.kotlin
 
 fun List<Any>.findInt(): Int? {
     return find { it is Int } as? Int

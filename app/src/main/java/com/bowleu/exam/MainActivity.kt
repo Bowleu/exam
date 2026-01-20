@@ -6,13 +6,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.bowleu.exam.coroutines.throttleFirst
+import com.bowleu.exam.coroutines.throttleLatest
+import com.bowleu.exam.kotlin.StartTimeDelegate
+import com.bowleu.exam.kotlin.findInt
+import com.bowleu.exam.kotlin.shakerSort
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 
 class MainActivity : ComponentActivity() {
@@ -33,6 +40,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val clicksThrottleFirst = remember { MutableSharedFlow<Long>(extraBufferCapacity = 1) }
+            val clicksThrottleLast = remember { MutableSharedFlow<Long>(extraBufferCapacity = 1) }
+
+            LaunchedEffect(Unit) {
+                clicksThrottleFirst
+                    .throttleFirst(1000)
+                    .collect {
+                        Log.d("THROTTLE FIRST", "CLICK ACCEPTED: $it")
+                    }
+            }
+
+            LaunchedEffect(Unit) {
+                clicksThrottleLast
+                    .throttleLatest(1000)
+                    .collect {
+                        Log.d("THROTTLE LATEST", "CLICK ACCEPTED: $it")
+                    }
+            }
+
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -43,6 +69,24 @@ class MainActivity : ComponentActivity() {
                 }
                 Button(onClick = { Log.d("List sort", "Sorted list: ${intList.shakerSort()}")}) {
                     Text("Shaker Sort")
+                }
+                Button(
+                    onClick = {
+                        val time = System.currentTimeMillis()
+                        Log.d("THROTTLE FIRST", "raw click $time")
+                        clicksThrottleFirst.tryEmit(time)
+                    }
+                ) {
+                    Text("Throttle First")
+                }
+                Button(
+                    onClick = {
+                        val time = System.currentTimeMillis()
+                        Log.d("THROTTLE LATEST", "raw click $time")
+                        clicksThrottleLast.tryEmit(time)
+                    }
+                ) {
+                    Text("Throttle Latest")
                 }
             }
         }

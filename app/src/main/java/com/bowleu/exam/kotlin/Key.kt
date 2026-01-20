@@ -1,4 +1,4 @@
-package com.bowleu.exam
+package com.bowleu.exam.kotlin
 
 data class Key(
     val field1: Int,
